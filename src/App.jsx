@@ -1,128 +1,9 @@
 import { useState, useEffect } from 'react';
-import { supabase } from './lib/supabase.js';
+import { supabase } from './lib/supabase';
+import { useNavigate } from 'react-router-dom';
+import './App.css';
 
-const globalStyles = `
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&family=Barlow:wght@300;400;500;600&display=swap');
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  .td-root {
-    background: #0a0a12;
-    min-height: 100vh;
-    font-family: 'Barlow', sans-serif;
-    color: #e8e4d8;
-    position: relative;
-    overflow: hidden;
-  }
-  .td-root::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(212,175,55,0.015) 3px, rgba(212,175,55,0.015) 4px);
-    pointer-events: none;
-    z-index: 0;
-  }
-  .td-header {
-    position: relative; z-index: 1;
-    border-bottom: 1px solid #D4AF37;
-    padding: 28px 36px 20px;
-    display: flex; align-items: flex-end; justify-content: space-between;
-  }
-  .td-wordmark {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 42px; letter-spacing: 0.08em; color: #D4AF37; line-height: 1;
-  }
-  .td-sub {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px; letter-spacing: 0.25em; color: #7a7460; text-transform: uppercase; margin-top: 4px;
-  }
-  .td-badge {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px; letter-spacing: 0.2em; color: #7a7460;
-    border: 1px solid #2a2820; padding: 6px 14px; text-transform: uppercase;
-  }
-  .td-body {
-    position: relative; z-index: 1;
-    display: grid; grid-template-columns: 340px 1fr;
-    min-height: calc(100vh - 100px);
-  }
-  .td-panel-left { border-right: 1px solid #1e1c15; padding: 32px 28px; }
-  .td-panel-right { padding: 32px 28px; }
-  .td-section-label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 9px; letter-spacing: 0.3em; color: #D4AF37;
-    text-transform: uppercase; margin-bottom: 20px;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .td-section-label::after {
-    content: ''; flex: 1; height: 1px;
-    background: linear-gradient(90deg, #2a2820, transparent);
-  }
-  .td-field { margin-bottom: 16px; }
-  .td-field label {
-    display: block; font-family: 'IBM Plex Mono', monospace;
-    font-size: 9px; letter-spacing: 0.22em; color: #5a5648;
-    text-transform: uppercase; margin-bottom: 6px;
-  }
-  .td-field input {
-    width: 100%; background: #0f0e16;
-    border: 1px solid #1e1c15; border-bottom: 1px solid #2e2c20;
-    color: #e8e4d8; font-family: 'IBM Plex Mono', monospace;
-    font-size: 14px; padding: 10px 12px; outline: none;
-    transition: border-color 0.15s; color-scheme: dark;
-  }
-  .td-field input:focus { border-color: #D4AF37; background: #12111a; }
-  .td-field input::placeholder { color: #3a3830; }
-  .td-time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .td-submit {
-    width: 100%; margin-top: 24px;
-    background: #D4AF37; color: #0a0a12;
-    border: none; font-family: 'Bebas Neue', sans-serif;
-    font-size: 18px; letter-spacing: 0.12em; padding: 14px;
-    cursor: pointer; transition: background 0.15s, transform 0.1s;
-  }
-  .td-submit:hover { background: #e8c84a; }
-  .td-submit:active { transform: scaleY(0.97); }
-  .td-divider { border: none; border-top: 1px solid #1e1c15; margin: 28px 0; }
-  .td-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: #1e1c15; margin-bottom: 28px; }
-  .td-stat { background: #0a0a12; padding: 16px 14px; }
-  .td-stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: #D4AF37; letter-spacing: 0.04em; line-height: 1; }
-  .td-stat-lbl { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #5a5648; text-transform: uppercase; margin-top: 4px; }
-  .td-table-wrap { overflow-x: auto; }
-  .td-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .td-table thead tr { border-bottom: 1px solid #D4AF37; }
-  .td-table th {
-    font-family: 'IBM Plex Mono', monospace; font-size: 8px;
-    letter-spacing: 0.28em; color: #D4AF37; text-transform: uppercase;
-    padding: 0 12px 12px 0; text-align: left; font-weight: 400;
-  }
-  .td-table td {
-    padding: 13px 12px 13px 0; border-bottom: 1px solid #131210;
-    font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #c8c4b4;
-  }
-  .td-table tbody tr:hover td { background: #0f0e18; color: #e8e4d8; }
-  .td-table td.td-name { font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 500; color: #e8e4d8; }
-  .td-table td.td-hours { color: #D4AF37; font-weight: 500; }
-  .td-empty {
-    text-align: center; padding: 48px 0;
-    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
-    letter-spacing: 0.15em; color: #3a3830; text-transform: uppercase;
-  }
-  .td-flash {
-    font-family: 'IBM Plex Mono', monospace; font-size: 10px;
-    letter-spacing: 0.2em; text-transform: uppercase;
-    text-align: center; padding: 10px;
-    border: 1px solid #2a2820; margin-top: 12px;
-  }
-  @media (max-width: 700px) {
-    .td-body { grid-template-columns: 1fr; }
-    .td-panel-left { border-right: none; border-bottom: 1px solid #1e1c15; }
-    .td-header { padding: 20px 20px 16px; }
-    .td-panel-left, .td-panel-right { padding: 24px 20px; }
-    .td-wordmark { font-size: 32px; }
-  }
-`;
-
+/* ── helpers ── */
 function fmt12(t) {
   if (!t) return '—';
   const [h, m] = t.split(':').map(Number);
@@ -141,114 +22,293 @@ function fmtDate(d) {
 function calcHours(start, end) {
   const s = new Date(`1970-01-01T${start}:00`);
   const e = new Date(`1970-01-01T${end}:00`);
-  return ((e - s) / 3600000).toFixed(2);
+  return ((e.getTime() - s.getTime()) / 3600000).toFixed(2);
 }
 
 export default function App() {
+  const [userRow, setUserRow] = useState(null);
+  const [authUser, setAuthUser] = useState(null);
   const [logs, setLogs] = useState([]);
-  const [form, setForm] = useState({ name: '', date: new Date().toISOString().split('T')[0], start_time: '', end_time: '' });
+  const [projects, setProjects] = useState([]);
+  const [form, setForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    start_time: '',
+    end_time: '',
+    project: '',
+  });
   const [clock, setClock] = useState('');
-  const [flash, setFlash] = useState(null); // { msg, color }
+  const [flash, setFlash] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+  const [needsName, setNeedsName] = useState(false);
+  const [nameInput, setNameInput] = useState('');
 
-  useEffect(() => {
-    const styleEl = document.createElement('style');
-    styleEl.textContent = globalStyles;
-    document.head.appendChild(styleEl);
-    return () => document.head.removeChild(styleEl);
-  }, []);
+  const navigate = useNavigate();
 
+  /* ── clock tick ── */
   useEffect(() => {
     const tick = () => {
       const now = new Date();
-      const h = String(now.getHours()).padStart(2, '0');
-      const m = String(now.getMinutes()).padStart(2, '0');
-      const s = String(now.getSeconds()).padStart(2, '0');
-      setClock(`${h} : ${m} : ${s}`);
+      const pad = (n) => String(n).padStart(2, '0');
+      setClock(`${pad(now.getHours())} : ${pad(now.getMinutes())} : ${pad(now.getSeconds())}`);
     };
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, []);
 
-  const fetchLogs = async () => {
-    const { data, error } = await supabase.from('work_logs').select('*').order('date', { ascending: false });
-    if (error) console.error(error);
-    else setLogs(data);
+  /* ── auth + load user row ── */
+  useEffect(() => {
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) { navigate('/'); return; }
+
+      const u = session.user;
+      setAuthUser(u);
+
+      const { data: user } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', u.id)
+        .single();
+
+      if (!user) {
+        setNeedsName(true);
+      } else {
+        console.log('User data from users table:', user);
+        setUserRow(user);
+      }
+
+      setLoadingUser(false);
+    };
+    init();
+  }, []);
+
+  /* ── fetch projects ── */
+  useEffect(() => {
+    const fetchProjects = async () => {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('id, project_name')
+        .order('project_name', { ascending: true });
+      if (error) console.error('fetchProjects error:', error);
+      else setProjects(data ?? []);
+    };
+    fetchProjects();
+  }, []);
+
+  /* ── create user after name entry ── */
+  const createUser = async () => {
+    if (!nameInput.trim()) return;
+
+    const { data, error } = await supabase
+      .from('users')
+      .insert({
+        id: authUser.id,
+        email: authUser.email,
+        full_name: nameInput.trim(),
+      })
+      .select()
+      .single();
+
+    if (error) { console.error('Error creating user:', error); return; }
+
+    console.log('New user created:', data);
+    setUserRow(data);
+    setNeedsName(false);
   };
 
-  useEffect(() => { fetchLogs(); }, []);
+  /* ── fetch logs ── */
+  const fetchLogs = async () => {
+    const { data, error } = await supabase
+      .from('work_logs')
+      .select('*, projects(project_name)')
+      .eq('user', authUser.id)
+      .order('date', { ascending: false });
+    if (error) console.error('fetchLogs error:', error);
+    else setLogs(data ?? []);
+  };
 
+  useEffect(() => {
+    if (!loadingUser && !needsName) fetchLogs();
+  }, [loadingUser, needsName]);
+
+  /* ── flash helper ── */
   const showFlash = (msg, color = '#D4AF37') => {
     setFlash({ msg, color });
     setTimeout(() => setFlash(null), 2500);
   };
 
+  /* ── submit ── */
   const handleSubmit = async () => {
-    const { name, date, start_time, end_time } = form;
-    if (!name || !date || !start_time || !end_time) {
-      showFlash('All fields required', '#e05a4e'); return;
+    const { date, start_time, end_time, project } = form;
+    if (!date || !start_time || !end_time) {
+      showFlash('Date, clock-in and clock-out are required', '#e05a4e'); return;
     }
     if (end_time <= start_time) {
-      showFlash('End time must follow start', '#e05a4e'); return;
+      showFlash('End time must follow start time', '#e05a4e'); return;
     }
     const total_hours = calcHours(start_time, end_time);
-    const { error } = await supabase.from('work_logs').insert([{ name, date, start_time, end_time, total_hours }]);
+    const { error } = await supabase.from('work_logs').insert([{
+      user: authUser.id,
+      date,
+      start_time,
+      end_time,
+      total_hours,
+      ...(project ? { project: parseInt(project) } : {}),
+    }]);
     if (error) { console.error(error); showFlash('Error saving entry', '#e05a4e'); return; }
     showFlash(`Entry recorded — ${total_hours} hrs`);
-    setForm(f => ({ ...f, name: '', start_time: '', end_time: '' }));
+    setForm(f => ({ ...f, start_time: '', end_time: '', project: '' }));
     fetchLogs();
   };
 
+  /* ── sign out ── */
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
+
+  /* ── stats ── */
   const today = new Date().toISOString().split('T')[0];
-  const totalHours = logs.reduce((a, l) => a + parseFloat(l.total_hours || 0), 0);
+  const totalHours = logs.reduce((a, l) => a + parseFloat(l.total_hours || '0'), 0);
   const todayCount = logs.filter(l => l.date === today).length;
   const uniqueDays = [...new Set(logs.map(l => l.date))].length;
   const avgHrs = uniqueDays > 0 ? (totalHours / uniqueDays).toFixed(1) : '—';
 
+  const displayName = userRow?.full_name ?? userRow?.name ?? '—';
+
+  /* ── loading ── */
+  if (loadingUser) {
+    return (
+      <div className="td-loading">
+        <div className="td-spinner" />
+      </div>
+    );
+  }
+
+  /* ── name setup screen ── */
+  if (needsName) {
+    return (
+      <div className="td-root">
+        <div className="td-header">
+          <div>
+            <div className="td-wordmark">Titan Dynamics</div>
+            <div className="td-sub">Workforce Operations System</div>
+          </div>
+        </div>
+        <div className="td-name-screen">
+          <div className="td-name-card">
+            <div className="td-section-label">First Time Setup</div>
+            <p className="td-name-intro">
+              Welcome. Enter your full name to complete registration.
+            </p>
+            <div className="td-field">
+              <label>Full Name</label>
+              <input
+                type="text"
+                placeholder="Enter your full name"
+                value={nameInput}
+                onChange={e => setNameInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && createUser()}
+                autoFocus
+              />
+            </div>
+            <button className="td-submit" onClick={createUser}>Continue</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── dashboard ── */
   return (
     <div className="td-root">
+      {/* ── header ── */}
       <div className="td-header">
         <div>
           <div className="td-wordmark">Titan Dynamics</div>
           <div className="td-sub">Workforce Operations System</div>
         </div>
-        <div className="td-badge">{clock}</div>
+        <div className="td-header-right">
+          <div className="td-badge">{clock}</div>
+          {userRow && (
+            <div className="td-user-info">
+              <span className="td-user-name">{displayName}</span>
+              <span className="td-user-email">{userRow.email}</span>
+            </div>
+          )}
+          <button className="td-signout" onClick={handleSignOut}>Sign Out</button>
+        </div>
       </div>
 
+      {/* ── body ── */}
       <div className="td-body">
+        {/* ── left panel: form ── */}
         <div className="td-panel-left">
           <div className="td-section-label">Log Entry</div>
 
           <div className="td-field">
-            <label>Employee Name</label>
-            <input type="text" placeholder="Full name" value={form.name}
-              onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+            <label>Employee</label>
+            <div className="td-field-static">{displayName}</div>
           </div>
+
           <div className="td-field">
             <label>Date</label>
-            <input type="date" value={form.date}
-              onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+            <input
+              type="date"
+              value={form.date}
+              onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+            />
           </div>
+
           <div className="td-time-row">
             <div className="td-field">
               <label>Clock In</label>
-              <input type="time" value={form.start_time}
-                onChange={e => setForm(f => ({ ...f, start_time: e.target.value }))} />
+              <input
+                type="time"
+                value={form.start_time}
+                onChange={e => setForm(f => ({ ...f, start_time: e.target.value }))}
+              />
             </div>
             <div className="td-field">
               <label>Clock Out</label>
-              <input type="time" value={form.end_time}
-                onChange={e => setForm(f => ({ ...f, end_time: e.target.value }))} />
+              <input
+                type="time"
+                value={form.end_time}
+                onChange={e => setForm(f => ({ ...f, end_time: e.target.value }))}
+              />
             </div>
           </div>
 
+          <div className="td-field">
+            <label>Project <span className="td-optional">(optional)</span></label>
+            <select
+              className="td-select"
+              value={form.project}
+              onChange={e => setForm(f => ({ ...f, project: e.target.value }))}
+            >
+              <option value="">— Select a project —</option>
+              {projects.map(p => (
+                <option key={p.id} value={p.id}>{p.project_name}</option>
+              ))}
+            </select>
+          </div>
+
+          {form.start_time && form.end_time && form.start_time < form.end_time && (
+            <div className="td-preview">
+              ⏱ {calcHours(form.start_time, form.end_time)} hrs
+            </div>
+          )}
+
           <button className="td-submit" onClick={handleSubmit}>Submit Entry</button>
+
           {flash && (
             <div className="td-flash" style={{ color: flash.color }}>{flash.msg}</div>
           )}
 
           <hr className="td-divider" />
 
+          {/* ── stats ── */}
           <div className="td-section-label">Summary</div>
           <div className="td-stats">
             <div className="td-stat">
@@ -265,19 +325,22 @@ export default function App() {
             </div>
             <div className="td-stat">
               <div className="td-stat-val">{avgHrs}</div>
-              <div className="td-stat-lbl">Avg Hrs/Day</div>
+              <div className="td-stat-lbl">Avg / Day</div>
             </div>
           </div>
         </div>
 
+        {/* ── right panel: table ── */}
         <div className="td-panel-right">
           <div className="td-section-label">Work Log</div>
+
           <div className="td-table-wrap">
             <table className="td-table">
               <thead>
                 <tr>
                   <th>Employee</th>
                   <th>Date</th>
+                  <th>Project</th>
                   <th>Clock In</th>
                   <th>Clock Out</th>
                   <th>Hours</th>
@@ -286,8 +349,14 @@ export default function App() {
               <tbody>
                 {logs.map(l => (
                   <tr key={l.id}>
-                    <td className="td-name">{l.name}</td>
+                    <td className="td-name">{displayName}</td>
                     <td>{fmtDate(l.date)}</td>
+                    <td className="td-project">
+                      {l.projects?.project_name
+                        ? <span className="td-project-tag">{l.projects.project_name}</span>
+                        : <span className="td-muted">—</span>
+                      }
+                    </td>
                     <td>{fmt12(l.start_time)}</td>
                     <td>{fmt12(l.end_time)}</td>
                     <td className="td-hours">{l.total_hours}h</td>
@@ -296,7 +365,10 @@ export default function App() {
               </tbody>
             </table>
           </div>
-          {logs.length === 0 && <div className="td-empty">No entries logged</div>}
+
+          {logs.length === 0 && (
+            <div className="td-empty">No entries logged</div>
+          )}
         </div>
       </div>
     </div>

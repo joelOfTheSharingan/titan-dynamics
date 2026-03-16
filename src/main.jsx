@@ -1,10 +1,41 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Login from './LoginPage';
+import App from './App';
+import { supabase } from './lib/supabase';
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+const container = document.getElementById('root');
+if (!container) throw new Error('Root element not found');
+
+let root;
+if (!container._reactRoot) {
+  root = ReactDOM.createRoot(container);
+  container._reactRoot = root;
+} else {
+  root = container._reactRoot;
+}
+
+root.render(
+  <BrowserRouter basename="/titan-dynamics/">
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/" element={<ProtectedApp />} />
+    </Routes>
+  </BrowserRouter>
+);
+
+function ProtectedApp() {
+  const [user, setUser] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setUser(data.session?.user ?? null);
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) return <div>Loading...</div>;
+  return user ? <App /> : <Navigate to="/login" replace />;
+}

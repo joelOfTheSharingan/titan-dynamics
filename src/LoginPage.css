@@ -1,0 +1,205 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600&family=Barlow:wght@400;500;600;700&display=swap');
+
+/* ── reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── root ── */
+.login-root {
+  background: #0a0a12;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Barlow', sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+.login-root::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent, transparent 3px,
+    rgba(212,175,55,0.015) 3px, rgba(212,175,55,0.015) 4px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── card ── */
+.login-card {
+  position: relative;
+  z-index: 1;
+  border: 1px solid #2a2820;
+  border-top: 2px solid #D4AF37;
+  padding: 52px 48px;
+  width: 100%;
+  max-width: 400px;
+  background: #0d0c18;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+/* ── branding ── */
+.login-wordmark {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 38px;
+  letter-spacing: 0.1em;
+  color: #D4AF37;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.login-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.28em;
+  color: #9a9080;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 44px;
+}
+
+/* ── section label ── */
+.login-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.28em;
+  color: #7a7060;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.login-label::before,
+.login-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #1e1c15;
+}
+
+/* ── intro text (name prompt) ── */
+.login-intro {
+  font-size: 13px;
+  color: #9a9080;
+  text-align: center;
+  letter-spacing: 0.03em;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+/* ── name input ── */
+.login-name-input {
+  width: 100%;
+  background: #0f0e16;
+  border: 1px solid #1e1c15;
+  border-bottom: 1px solid #2e2c20;
+  color: #e8e4d8;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 15px;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color 0.15s;
+  color-scheme: dark;
+  margin-bottom: 12px;
+  letter-spacing: 0.04em;
+}
+.login-name-input:focus {
+  border-color: #D4AF37;
+  background: #12111a;
+}
+.login-name-input::placeholder {
+  color: #3a3830;
+  font-size: 13px;
+}
+
+/* ── error ── */
+.login-error {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: #e05a4e;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  width: 100%;
+  text-align: center;
+}
+
+/* ── button ── */
+.login-btn {
+  width: 100%;
+  background: transparent;
+  border: 1px solid #2e2c20;
+  color: #f0ece0;
+  font-family: 'Barlow', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  padding: 14px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+.login-btn:hover:not(:disabled) {
+  border-color: #D4AF37;
+  background: #12111a;
+  color: #ffffff;
+}
+.login-btn:active:not(:disabled) {
+  transform: scaleY(0.97);
+}
+.login-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.login-btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* ── spinner ── */
+.login-spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid #3a3830;
+  border-top-color: #D4AF37;
+  border-radius: 50%;
+  animation: lp-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes lp-spin { to { transform: rotate(360deg); } }
+
+/* ── footer ── */
+.login-footer {
+  margin-top: 36px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: #5a5650;
+  font-weight: 600;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* ── responsive ── */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 40px 28px;
+    border-left: none;
+    border-right: none;
+    max-width: 100%;
+  }
+  .login-wordmark { font-size: 32px; }
+}

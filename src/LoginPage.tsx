@@ -27,16 +27,20 @@ export default function LoginPage() {
   }, []);
 
   const handleGoogleLogin = async () => {
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin },
-    });
-    if (error) {
-      console.error('Login error:', error.message);
-      setLoading(false);
+  setLoading(true);
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: "https://joelofthesharingan.github.io/titan-dynamics/#/"
     }
-  };
+  });
+
+  if (error) {
+    console.error("Login error:", error);
+    setLoading(false);
+  }
+};
 
   const handleUserRow = async (user: any) => {
     try {

@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './LoginPage';
 import App from './App';
 import { supabase } from './lib/supabase';
@@ -17,12 +17,12 @@ if (!container._reactRoot) {
 }
 
 root.render(
-  <BrowserRouter basename="/titan-dynamics/">
+  <HashRouter>
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/" element={<ProtectedApp />} />
     </Routes>
-  </BrowserRouter>
+  </HashRouter>
 );
 
 function ProtectedApp() {

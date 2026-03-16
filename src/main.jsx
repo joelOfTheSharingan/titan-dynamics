@@ -30,12 +30,24 @@ function ProtectedApp() {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user ?? null);
+    // First check existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
       setLoading(false);
     });
+
+    // Listen for login events (important for OAuth redirects)
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
+    );
+
+    return () => listener.subscription.unsubscribe();
   }, []);
 
   if (loading) return <div>Loading...</div>;
+
   return user ? <App /> : <Navigate to="/login" replace />;
 }

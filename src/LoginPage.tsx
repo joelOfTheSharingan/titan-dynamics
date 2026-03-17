@@ -29,13 +29,15 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
   setLoading(true);
 
-  await supabase.auth.signInWithOAuth({
+  const redirect =
+  window.location.hostname === "localhost"
+    ? "http://localhost:5173"
+    : "https://joelofthesharingan.github.io/titan-dynamics";
+
+await supabase.auth.signInWithOAuth({
   provider: "google",
   options: {
-    redirectTo:
-      window.location.hostname === "localhost"
-        ? "http://localhost:5173"
-        : "https://joelofthesharingan.github.io/titan-dynamics"
+    redirectTo: redirect
   }
 });
 };

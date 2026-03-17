@@ -32,7 +32,7 @@ export default function LoginPage() {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: "https://joelofthesharingan.github.io/titan-dynamics/#/"
+      redirectTo: "window.location.origin"
     }
   });
 

@@ -108,10 +108,10 @@
 }
 .td-signout {
   background: transparent;
-  border: 1px solid #2a2820;
-  color: #7a7460;
+  border: 1px solid #ee1010;
+  color: #ee1010;
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   padding: 7px 14px;
@@ -219,6 +219,19 @@
   color: #8ab870;
   text-align: center;
   margin-bottom: 6px;
+}
+.td-update {
+  width: 200px;
+  margin-top: 20px;
+  background: #D4AF37;
+  color: #0a0a12;
+  border: none;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 0.12em;
+  padding: 14px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
 }
 
 /* ── submit button ── */
@@ -350,6 +363,10 @@
   .td-wordmark { font-size: 32px; }
   .td-header-right { gap: 10px; }
   .td-badge { min-width: unset; font-size: 11px; }
+  .td-update{width:300px}
+  .td-update{height:35px}
+  .td-update{border-radius: 2px;}
+  .td-update{font-size:15px}
 }
 
 /* ── name setup screen ── */

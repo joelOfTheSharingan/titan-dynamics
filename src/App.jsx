@@ -137,7 +137,27 @@ export default function App() {
     setFlash({ msg, color });
     setTimeout(() => setFlash(null), 2500);
   };
+const updateSheet = async () => {
+  try {
+    const res = await fetch('/api/updateSheet', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer supersecret123'
+      }
+    })
 
+    const data = await res.json()
+
+    if (data.success) {
+      showFlash('Sheet updated successfully')
+    } else {
+      showFlash('Update failed', '#e05a4e')
+    }
+  } catch (err) {
+    console.error(err)
+    showFlash('Server error', '#e05a4e')
+  }
+}
   /* ── submit ── */
   const handleSubmit = async () => {
     const { date, start_time, end_time, project } = form;
@@ -238,6 +258,9 @@ export default function App() {
             </div>
           )}
           <button className="td-signout" onClick={handleSignOut}>Sign Out</button>
+          <button className="td-update" onClick={updateSheet}>
+  Update in Sheets
+</button>
         </div>
       </div>
 

@@ -32,7 +32,7 @@ export default function LoginPage() {
   const redirect =
   window.location.hostname === "localhost"
     ? "http://localhost:5173"
-    : "https://joelofthesharingan.github.io/titan-dynamics";
+    : "https://69b95d7c99d237073866e575--dreamy-crostata-344425.netlify.app/";
 
 await supabase.auth.signInWithOAuth({
   provider: "google",

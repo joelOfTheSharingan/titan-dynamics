@@ -139,25 +139,26 @@ export default function App() {
   };
 const updateSheet = async () => {
   try {
-    const res = await fetch('/api/updateSheet', {
+    const res = await fetch('http://localhost:3000/api/updateSheet', {
       method: 'POST',
       headers: {
+        'Content-Type': 'application/json',
         Authorization: 'Bearer supersecret123'
       }
-    })
+    });
 
-    const data = await res.json()
+    const data = await res.json();
 
     if (data.success) {
-      showFlash('Sheet updated successfully')
+      showFlash('Sheet updated successfully');
     } else {
-      showFlash('Update failed', '#e05a4e')
+      showFlash('Update failed', '#e05a4e');
     }
   } catch (err) {
-    console.error(err)
-    showFlash('Server error', '#e05a4e')
+    console.error(err);
+    showFlash('Server error', '#e05a4e');
   }
-}
+};
   /* ── submit ── */
   const handleSubmit = async () => {
     const { date, start_time, end_time, project } = form;

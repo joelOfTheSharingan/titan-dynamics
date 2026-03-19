@@ -47,29 +47,26 @@ function fmtDate(d) {
 
 export default async function handler(req, res) {
   
-  return res.json({ version: "NEW_DEPLOY_CHECK" });
-
-  console.log("---- NEW REQUEST ----");
-
-  if (req.method !== "POST") {
+ if (req.method !== "POST") {
     console.log("❌ Wrong method:", req.method);
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // 🔍 DEBUG AUTH
+  console.log("---- NEW REQUEST ----");
+
   const auth = req.headers.authorization;
 
-  console.log("EXPECTED SECRET:", process.env.API_SECRET);
-  console.log("RECEIVED HEADER:", auth);
+const token = auth?.split(" ")[1]; // extract token after "Bearer"
 
-  // Auth check
-  if (!auth || auth !== `Bearer ${process.env.API_SECRET}`) {
-    console.log("❌ AUTH FAILED");
-    return res.status(401).json({ success: false, error: "Unauthorized" });
-  }
+console.log("EXPECTED:", process.env.API_SECRET);
+console.log("TOKEN:", token);
 
-  console.log("✅ AUTH PASSED");
+if (!token || token.trim() !== process.env.API_SECRET.trim()) {
+  console.log("❌ AUTH FAILED");
+  return res.status(401).json({ success: false, error: "Unauthorized" });
+}
 
+console.log("✅ AUTH PASSED");
   try {
     // 1. Fetch data
     const { data: logs, error } = await supabase

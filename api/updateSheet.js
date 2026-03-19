@@ -17,10 +17,17 @@ const supabase = createClient(process.env.SUPABASE_URL, supabaseKey);
 function getSheetsClient() {
   const rawKey = process.env.GOOGLE_PRIVATE_KEY;
 
+  console.log("RAW KEY LENGTH:", rawKey?.length);
+  console.log("RAW KEY START:", rawKey?.slice(0, 30));
+  console.log("RAW KEY END:", rawKey?.slice(-30));
+
   const privateKey = rawKey
     ?.replace(/\\n/g, "\n")
     ?.replace(/\r/g, "")
     ?.trim();
+
+  console.log("FORMATTED START:", privateKey?.slice(0, 30));
+  console.log("FORMATTED END:", privateKey?.slice(-30));
 
   const auth = new google.auth.GoogleAuth({
     credentials: {

@@ -139,24 +139,29 @@ export default function App() {
   };
 const updateSheet = async () => {
   try {
-    const res = await fetch('http://localhost:3000/api/updateSheet', {
-      method: 'POST',
+    const BASE_URL =
+      window.location.hostname === "localhost"
+        ? "http://localhost:3000"
+        : "https://titan-dynamics.vercel.app";
+
+    const res = await fetch(`${BASE_URL}/api/updateSheet`, {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer supersecret123'
-      }
+        "Content-Type": "application/json",
+        Authorization: "Bearer supersecret123",
+      },
     });
 
     const data = await res.json();
 
     if (data.success) {
-      showFlash('Sheet updated successfully');
+      showFlash("Sheet updated successfully");
     } else {
-      showFlash('Update failed', '#e05a4e');
+      showFlash("Update failed", "#e05a4e");
     }
   } catch (err) {
     console.error(err);
-    showFlash('Server error', '#e05a4e');
+    showFlash("Server error", "#e05a4e");
   }
 };
   /* ── submit ── */

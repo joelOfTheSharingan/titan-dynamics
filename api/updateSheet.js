@@ -46,15 +46,26 @@ function fmtDate(d) {
 // ── Handler ──────────────────────────────────────────────────────
 
 export default async function handler(req, res) {
+  console.log("---- NEW REQUEST ----");
+
   if (req.method !== "POST") {
+    console.log("❌ Wrong method:", req.method);
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // Auth check
+  // 🔍 DEBUG AUTH
   const auth = req.headers.authorization;
+
+  console.log("EXPECTED SECRET:", process.env.API_SECRET);
+  console.log("RECEIVED HEADER:", auth);
+
+  // Auth check
   if (!auth || auth !== `Bearer ${process.env.API_SECRET}`) {
+    console.log("❌ AUTH FAILED");
     return res.status(401).json({ success: false, error: "Unauthorized" });
   }
+
+  console.log("✅ AUTH PASSED");
 
   try {
     // 1. Fetch data
@@ -72,8 +83,11 @@ export default async function handler(req, res) {
       .order("date", { ascending: false });
 
     if (error) {
+      console.log("❌ Supabase error:", error);
       return res.status(500).json({ success: false, error: error.message });
     }
+
+    console.log("✅ Logs fetched:", logs.length);
 
     // 2. Format rows
     const header = [
@@ -94,6 +108,8 @@ export default async function handler(req, res) {
     const sheets = getSheetsClient();
     const spreadsheetId = process.env.SHEET_ID;
 
+    console.log("📄 Writing to sheet:", spreadsheetId);
+
     await sheets.spreadsheets.values.clear({
       spreadsheetId,
       range: "Sheet1",
@@ -108,9 +124,12 @@ export default async function handler(req, res) {
       },
     });
 
+    console.log("✅ Sheet updated:", rows.length);
+
     return res.json({ success: true, rowsWritten: rows.length });
 
   } catch (err) {
+    console.log("❌ ERROR:", err);
     return res.status(500).json({ success: false, error: err.message });
   }
 }

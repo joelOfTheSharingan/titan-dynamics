@@ -15,6 +15,7 @@ const supabase = createClient(process.env.SUPABASE_URL, supabaseKey);
 // ── Google Sheets ────────────────────────────────────────────────
 
 function getSheetsClient() {
+  console.log("CREDS EXISTS:", !!process.env.GOOGLE_CREDENTIALS);
   const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
 
   const auth = new google.auth.GoogleAuth({

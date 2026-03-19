@@ -46,6 +46,9 @@ function fmtDate(d) {
 // ── Handler ──────────────────────────────────────────────────────
 
 export default async function handler(req, res) {
+  
+  return res.json({ version: "NEW_DEPLOY_CHECK" });
+
   console.log("---- NEW REQUEST ----");
 
   if (req.method !== "POST") {

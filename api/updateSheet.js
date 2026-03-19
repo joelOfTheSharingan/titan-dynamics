@@ -15,10 +15,17 @@ const supabase = createClient(process.env.SUPABASE_URL, supabaseKey);
 // ── Google Sheets ────────────────────────────────────────────────
 
 function getSheetsClient() {
+  const rawKey = process.env.GOOGLE_PRIVATE_KEY;
+
+  const privateKey = rawKey
+    ?.replace(/\\n/g, "\n")
+    ?.replace(/\r/g, "")
+    ?.trim();
+
   const auth = new google.auth.GoogleAuth({
     credentials: {
       client_email: process.env.GOOGLE_CLIENT_EMAIL,
-      private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+      private_key: privateKey,
     },
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });

@@ -30,6 +30,8 @@ export default function App() {
   const [authUser, setAuthUser] = useState(null);
   const [logs, setLogs] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [isUpdated, setIsUpdated] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [form, setForm] = useState({
     date: new Date().toISOString().split('T')[0],
     start_time: '',
@@ -139,6 +141,8 @@ export default function App() {
   };
 const updateSheet = async () => {
   try {
+    setIsUpdating(true); // 👈 show "Updating..."
+
     const BASE_URL =
       window.location.hostname === "localhost"
         ? "http://localhost:3000"
@@ -152,14 +156,20 @@ const updateSheet = async () => {
       },
     });
 
-    const data = await res.json();
-
-    if (data.success) {
+    if (res.ok) {
       showFlash("Sheet updated successfully");
+
+      setIsUpdating(false);
+      setIsUpdated(true); // 👈 show "Updated!"
+
+      setTimeout(() => setIsUpdated(false), 2500);
     } else {
+      setIsUpdating(false);
       showFlash("Update failed", "#e05a4e");
     }
+
   } catch (err) {
+    setIsUpdating(false);
     console.error(err);
     showFlash("Server error", "#e05a4e");
   }
@@ -264,9 +274,14 @@ const updateSheet = async () => {
             </div>
           )}
           <button className="td-signout" onClick={handleSignOut}>Sign Out</button>
-          <button className="td-update" onClick={updateSheet}>
-  Update in Sheets
+  <button className="td-update" onClick={updateSheet}>
+  {isUpdating
+    ? "Updating..."
+    : isUpdated
+      ? "Updated!"
+      : "Update in Sheets"}
 </button>
+
         </div>
       </div>
 

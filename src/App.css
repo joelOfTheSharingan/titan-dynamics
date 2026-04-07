@@ -443,3 +443,28 @@
   white-space: nowrap;
 }
 .td-muted { color: #3a3830; }
+.td-sheet-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-left: 12px;
+  cursor: pointer;
+  font-size: 11px;
+  color: #5ad286;
+  transition: 0.2s ease;
+  margin-top: 30px; 
+}
+
+.td-sheet-link span {
+  margin-top: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.td-sheet-link:hover {
+  transform: translateY(-2px);
+  opacity: 0.85;
+}
+svg{
+  transform:scale(1.5);
+}

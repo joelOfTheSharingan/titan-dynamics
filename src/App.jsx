@@ -152,7 +152,7 @@ const updateSheet = async () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer supersecret123",
+        Authorization: `Bearer ${import.meta.env.VITE_API_KEY}`,
       },
     });
 

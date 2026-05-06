@@ -107,7 +107,7 @@ export default function App() {
       .insert({
         id: authUser.id,
         email: authUser.email,
-        full_name: nameInput.trim(),
+        username: nameInput.trim(),
       })
       .select()
       .single();
@@ -211,7 +211,7 @@ const updateSheet = async () => {
   const uniqueDays = [...new Set(logs.map(l => l.date))].length;
   const avgHrs = uniqueDays > 0 ? (totalHours / uniqueDays).toFixed(1) : '—';
 
-  const displayName = userRow?.full_name ?? userRow?.name ?? '—';
+  const displayName = userRow?.username ?? userRow?.name ?? '—';
 
   /* ── loading ── */
   if (loadingUser) {

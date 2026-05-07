@@ -10,12 +10,16 @@ const supabaseKey =
 
 if (!supabaseKey) throw new Error("No Supabase key found");
 
-const supabase = createClient(process.env.SUPABASE_URL, supabaseKey);
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  supabaseKey
+);
 
 // ── Google Sheets ────────────────────────────────────────────────
 
 function getSheetsClient() {
   console.log("CREDS EXISTS:", !!process.env.GOOGLE_CREDENTIALS);
+
   const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
 
   const auth = new google.auth.GoogleAuth({
@@ -25,6 +29,7 @@ function getSheetsClient() {
 
   return google.sheets({ version: "v4", auth });
 }
+
 // ── Helpers ──────────────────────────────────────────────────────
 
 function fmt12(t) {
@@ -38,41 +43,44 @@ function fmt12(t) {
 function fmtDate(d) {
   if (!d) return "—";
   const [y, mo, day] = d.split("-");
-  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const months = [
+    "Jan","Feb","Mar","Apr","May","Jun",
+    "Jul","Aug","Sep","Oct","Nov","Dec"
+  ];
   return `${months[parseInt(mo) - 1]} ${parseInt(day)}, ${y}`;
 }
 
 // ── Handler ──────────────────────────────────────────────────────
 
 export default async function handler(req, res) {
-    res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
- if (req.method !== "POST") {
-    console.log("❌ Wrong method:", req.method);
+
+  if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   console.log("---- NEW REQUEST ----");
 
   const auth = req.headers.authorization;
+  const token = auth?.split(" ")[1];
 
-const token = auth?.split(" ")[1]; // extract token after "Bearer"
+  console.log("EXPECTED:", process.env.API_SECRET);
+  console.log("TOKEN:", token);
 
-console.log("EXPECTED:", process.env.API_SECRET);
-console.log("TOKEN:", token);
+  if (!token || token.trim() !== process.env.API_SECRET.trim()) {
+    return res.status(401).json({ success: false, error: "Unauthorized" });
+  }
 
-if (!token || token.trim() !== process.env.API_SECRET.trim()) {
-  console.log("❌ AUTH FAILED");
-  return res.status(401).json({ success: false, error: "Unauthorized" });
-}
+  console.log("✅ AUTH PASSED");
 
-console.log("✅ AUTH PASSED");
   try {
-    // 1. Fetch data
+    // ── 1. Fetch work logs (NO JOIN → SAFE)
     const { data: logs, error } = await supabase
       .from("work_logs")
       .select(`
@@ -81,8 +89,8 @@ console.log("✅ AUTH PASSED");
         start_time,
         end_time,
         total_hours,
-        users ( username, email ),
-        projects ( project_name )
+        auth_id,
+        project
       `)
       .order("date", { ascending: false });
 
@@ -93,22 +101,41 @@ console.log("✅ AUTH PASSED");
 
     console.log("✅ Logs fetched:", logs.length);
 
-    // 2. Format rows
+    // ── 2. Fetch users separately (SAFE WAY)
+    const { data: users } = await supabase
+      .from("users")
+      .select("auth_id, username, email");
+
+    const userMap = Object.fromEntries(
+      (users || []).map(u => [u.auth_id, u])
+    );
+
+    // ── 3. Build rows
     const header = [
-      "Employee", "Email", "Date", "Project", "Clock In", "Clock Out", "Hours"
+      "Employee",
+      "Email",
+      "Date",
+      "Project",
+      "Clock In",
+      "Clock Out",
+      "Hours"
     ];
 
-    const rows = logs.map((l) => [
-      l.users?.username ?? "—",
-      l.users?.email ?? "—",
-      fmtDate(l.date),
-      l.projects?.project_name ?? "—",
-      fmt12(l.start_time),
-      fmt12(l.end_time),
-      l.total_hours ?? "—",
-    ]);
+    const rows = logs.map((l) => {
+      const u = userMap[l.auth_id];
 
-    // 3. Update Google Sheet
+      return [
+        u?.username ?? "—",
+        u?.email ?? "—",
+        fmtDate(l.date),
+        l.projects?.project_name ?? "—",
+        fmt12(l.start_time),
+        fmt12(l.end_time),
+        l.total_hours ?? "—",
+      ];
+    });
+
+    // ── 4. Write to Google Sheets
     const sheets = getSheetsClient();
     const spreadsheetId = process.env.SHEET_ID;
 
@@ -130,11 +157,16 @@ console.log("✅ AUTH PASSED");
 
     console.log("✅ Sheet updated:", rows.length);
 
-    return res.json({ success: true, rowsWritten: rows.length });
+    return res.json({
+      success: true,
+      rowsWritten: rows.length,
+    });
 
   } catch (err) {
     console.log("❌ ERROR:", err);
-    return res.status(500).json({ success: false, error: err.message });
+    return res.status(500).json({
+      success: false,
+      error: err.message,
+    });
   }
 }
-

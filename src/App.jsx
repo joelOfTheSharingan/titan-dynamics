@@ -126,8 +126,9 @@ export default function App() {
     const { data, error } = await supabase
       .from('work_logs')
       .select('*, projects(project_name)')
-      .eq('user', authUser.id)   // ← stays as auth.users.id
+      .eq('auth_id', authUser.id)   // ✅ FIXED
       .order('date', { ascending: false });
+
     if (error) console.error('fetchLogs error:', error);
     else setLogs(data ?? []);
   };
@@ -186,7 +187,7 @@ export default function App() {
     }
     const total_hours = calcHours(start_time, end_time);
     const { error } = await supabase.from('work_logs').insert([{
-      user: authUser.id,   // ← stays as auth.users.id
+      auth_id: authUser.id,   // ✅ FIXED
       date,
       start_time,
       end_time,

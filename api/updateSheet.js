@@ -81,7 +81,7 @@ console.log("✅ AUTH PASSED");
         start_time,
         end_time,
         total_hours,
-        users ( full_name, email ),
+        users ( username, email ),
         projects ( project_name )
       `)
       .order("date", { ascending: false });
@@ -99,7 +99,7 @@ console.log("✅ AUTH PASSED");
     ];
 
     const rows = logs.map((l) => [
-      l.users?.full_name ?? "—",
+      l.users?.username ?? "—",
       l.users?.email ?? "—",
       fmtDate(l.date),
       l.projects?.project_name ?? "—",

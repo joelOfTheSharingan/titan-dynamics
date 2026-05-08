@@ -71,7 +71,7 @@ export default function App() {
       const { data: user } = await supabase
         .from('users')
         .select('*')
-        .eq('auth_id', u.id)   // ← fixed
+        .eq('id', u.id)   // ← fixed
         .single();
 
       if (!user) {
@@ -106,7 +106,7 @@ export default function App() {
     const { data, error } = await supabase
       .from('users')
       .insert({
-        auth_id: authUser.id,   // ← fixed
+        id: authUser.id,   // ← fixed
         email: authUser.email,
         username: nameInput.trim(),
         role: 'supervisor',
@@ -126,7 +126,7 @@ export default function App() {
     const { data, error } = await supabase
       .from('work_logs')
       .select('*, projects(project_name)')
-      .eq('auth_id', authUser.id)   // ✅ FIXED
+      .eq('user_id', authUser.id)   // ✅ FIXED
       .order('date', { ascending: false });
 
     if (error) console.error('fetchLogs error:', error);
@@ -187,7 +187,7 @@ export default function App() {
     }
     const total_hours = calcHours(start_time, end_time);
     const { error } = await supabase.from('work_logs').insert([{
-      auth_id: authUser.id,   // ✅ FIXED
+      user_id: authUser.id,   // ✅ FIXED
       date,
       start_time,
       end_time,

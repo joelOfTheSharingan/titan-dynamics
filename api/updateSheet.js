@@ -89,7 +89,7 @@ export default async function handler(req, res) {
         start_time,
         end_time,
         total_hours,
-        auth_id,
+        user_id,
         project
       `)
       .order("date", { ascending: false });
@@ -104,10 +104,10 @@ export default async function handler(req, res) {
     // ── 2. Fetch users separately (SAFE WAY)
     const { data: users } = await supabase
       .from("users")
-      .select("auth_id, username, email");
+      .select("id, username, email");
 
     const userMap = Object.fromEntries(
-      (users || []).map(u => [u.auth_id, u])
+      (users || []).map(u => [u.id, u])
     );
 
     // ── 3. Build rows
@@ -122,7 +122,7 @@ export default async function handler(req, res) {
     ];
 
     const rows = logs.map((l) => {
-      const u = userMap[l.auth_id];
+      const u = userMap[l.user_id];
 
       return [
         u?.username ?? "—",

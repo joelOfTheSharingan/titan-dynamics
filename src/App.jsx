@@ -90,6 +90,7 @@ export default function App() {
   useEffect(() => {
     const fetchProjects = async () => {
       const { data, error } = await supabase
+        .schema("titan_dynamics")
         .from('projects')
         .select('id, project_name')
         .order('project_name', { ascending: true });
@@ -124,6 +125,7 @@ export default function App() {
   /* ── fetch logs ── */
   const fetchLogs = async () => {
     const { data, error } = await supabase
+      .schema("titan_dynamics")
       .from('work_logs')
       .select('*, projects(project_name)')
       .eq('user_id', authUser.id)   // ✅ FIXED
@@ -186,7 +188,7 @@ export default function App() {
       showFlash('End time must follow start time', '#e05a4e'); return;
     }
     const total_hours = calcHours(start_time, end_time);
-    const { error } = await supabase.from('work_logs').insert([{
+    const { error } = await supabase.schema("titan_dynamics").from('work_logs').insert([{
       user_id: authUser.id,   // ✅ FIXED
       date,
       start_time,

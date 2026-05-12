@@ -1,6 +1,26 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient }
+from '@supabase/supabase-js';
 
-const PUBLIC_URL="https://eycuakkufbolyyawlpno.supabase.co";
-const PUBLIC_KEY="sb_publishable_EwqIIW0ZKZnm-5dMEoYVug_5zKo0txU";
+const supabaseUrl =
+  import.meta.env.VITE_SUPABASE_URL;
 
-export const supabase=createClient(PUBLIC_URL,PUBLIC_KEY)
+const supabaseAnonKey =
+  import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+export const supabase =
+  createClient(
+    supabaseUrl,
+    supabaseAnonKey,
+    {
+      auth: {
+
+        persistSession: true,
+
+        autoRefreshToken: true,
+
+        detectSessionInUrl: true,
+
+        storageKey: 'joel-global-auth',
+      },
+    }
+  );

@@ -60,30 +60,80 @@ export default function App() {
   }, []);
 
   /* ── auth + load user row ── */
+
   useEffect(() => {
+
     const init = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) { navigate('/'); return; }
 
-      const u = session.user;
-      setAuthUser(u);
+      try {
 
-      const { data: user } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', u.id)   // ← fixed
-        .single();
+        // give Supabase time to restore session
+        await new Promise(resolve =>
+          setTimeout(resolve, 1000)
+        );
 
-      if (!user) {
-        setNeedsName(true);
-      } else {
-        console.log('User data from users table:', user);
-        setUserRow(user);
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+
+        console.log("SESSION:", session);
+
+        if (sessionError) {
+          console.error(sessionError);
+        }
+
+        // no login
+        if (!session?.user) {
+
+          window.location.href =
+            "https://joelofthesharingan.github.io/home/login.html";
+
+          return;
+        }
+
+        const u = session.user;
+
+        setAuthUser(u);
+
+        // fetch user row
+        const {
+          data: user,
+          error: userError,
+        } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", u.id)
+          .single();
+
+        if (userError) {
+          console.error(userError);
+        }
+
+        // first login
+        if (!user) {
+
+          setNeedsName(true);
+
+        } else {
+
+          console.log("User row:", user);
+
+          setUserRow(user);
+        }
+
+      } catch (err) {
+
+        console.error("INIT ERROR:", err);
+
+      } finally {
+
+        setLoadingUser(false);
       }
-
-      setLoadingUser(false);
     };
+
     init();
+
   }, []);
 
   /* ── fetch projects ── */

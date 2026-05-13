@@ -253,11 +253,19 @@ export default function App() {
   };
 
   /* ── sign out ── */
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate('/');
-  };
+/* ── sign out ── */
+const handleSignOut = async () => {
 
+  await supabase.auth.signOut();
+
+  const isLocal =
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1";
+
+  window.location.href = isLocal
+    ? "http://localhost:3000/home/login.html"
+    : "https://joelofthesharingan.github.io/home/login.html";
+};
   /* ── stats ── */
   const today = new Date().toISOString().split('T')[0];
   const totalHours = logs.reduce((a, l) => a + parseFloat(l.total_hours || '0'), 0);

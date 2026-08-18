@@ -359,7 +359,7 @@ export default function App() {
       <div className="td-header">
         <div>
           <div className="td-wordmark">Titan Dynamics</div>
-          <div className="td-sub">Workforce Operations System</div>
+          <div className="td-sub">Time Trackimg System</div>
         </div>
         <div className="td-header-right">
           <div className="td-badge">{clock}</div>

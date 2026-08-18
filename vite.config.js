@@ -1,25 +1,16 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from 'path';
 
 export default defineConfig(({ command }) => {
-  // 1. Detect if we are deploying live to GitHub Pages via your command line build process
-  const isGitHubDeploy = process.env.npm_lifecycle_event === 'deploy' || process.env.npm_lifecycle_event === 'predeploy';
-
   return {
     plugins: [react()],
     
-    // 2. SMART BASE URL RESOLUTION:
-    // - Local dev sandbox uses: '/'
-    // - GitHub deployment uses your exact repo folder name: '/titan-dynamics/'
-    // - Local home build copy uses your workspace path: '/home/titan/'
-    base: command === 'serve' 
-      ? '/' 
-      : (isGitHubDeploy ? '/titan-dynamics/' : '/home/titan/'),
+    // Default base URL fallback for local configurations
+    base: command === 'serve' ? '/' : './',
     
     build: {
-      // 3. Keep output pointing to your local homepage app project space
-      outDir: path.resolve(__dirname, '../home/titan'),
+      // 🚨 FIXED: Changed from your home path to your clean local dist folder!
+      outDir: 'dist',
       emptyOutDir: true,
     },
     

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom'; // 🚨 1. Make sure 'Navigate' is imported here!
 import './LoginPage.css';
 
 export default function LoginPage() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [needsName, setNeedsName] = useState(false);
   const [nameInput, setNameInput] = useState('');
@@ -14,18 +15,16 @@ export default function LoginPage() {
   const [user, setUser] = useState<User | null>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
 
-  const navigate = useNavigate();
-
   const isLocal =
     window.location.hostname === 'localhost' ||
     window.location.hostname === '127.0.0.1';
 
   const LOGIN_URL = isLocal
     ? 'http://localhost:3000/home/login.html'
-    : 'https://joelofthesharingan.github.io/home/login.html';
+    : 'https://github.io';
 
   // ─────────────────────────────
-  // AUTH INIT (SINGLE SOURCE OF TRUTH)
+  // AUTH INIT
   // ─────────────────────────────
   useEffect(() => {
     let mounted = true;
@@ -35,9 +34,6 @@ export default function LoginPage() {
         data: { user },
         error
       } = await supabase.auth.getUser();
-
-      console.log('AUTH USER:', user);
-      console.log('AUTH ERROR:', error);
 
       if (!mounted) return;
 
@@ -51,7 +47,6 @@ export default function LoginPage() {
 
     initAuth();
 
-    // listen for auth changes
     const { data: listener } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         if (!mounted) return;
@@ -90,7 +85,7 @@ export default function LoginPage() {
       }
 
       if (existing) {
-        navigate('/app');
+        navigate('/'); 
       } else {
         setPendingUser(user);
         setNeedsName(true);
@@ -132,7 +127,7 @@ export default function LoginPage() {
       return;
     }
 
-    navigate('/app');
+    navigate('/'); 
   };
 
   // ─────────────────────────────

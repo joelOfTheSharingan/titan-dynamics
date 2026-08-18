@@ -16,11 +16,25 @@ if (!container._reactRoot) {
   root = container._reactRoot;
 }
 
+// 1. Move the check here so our main routing layout can see it
+const isTestingAlone = window.location.port === '5173' || window.location.port === '5174';
+
 root.render(
   <HashRouter>
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/" element={<ProtectedApp />} />
+      {isTestingAlone ? (
+        // 🚨 SANDBOX MODE: No login route exists. Everything goes directly to the main App!
+        <>
+          <Route path="/" element={<App />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </>
+      ) : (
+        // 🔒 PRODUCTION MODE: Normal authentication flow
+        <>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<ProtectedApp />} />
+        </>
+      )}
     </Routes>
   </HashRouter>
 );
@@ -30,13 +44,11 @@ function ProtectedApp() {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    // First check existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    // Listen for login events (important for OAuth redirects)
     const { data: listener } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setUser(session?.user ?? null);

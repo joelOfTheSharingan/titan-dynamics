@@ -60,17 +60,22 @@ export default function App() {
   }, []);
 
   /* ── auth + load user row ── */
-
   useEffect(() => {
-
     const init = async () => {
-
       try {
+        // 🚨 1. CHECK FOR SANDBOX MODE FIRST
+        const isSandbox = window.location.port === '5173' || window.location.port === '5174';
+        
+        if (isSandbox) {
+          // Provide instant local mock data and skip Supabase completely
+          setAuthUser({ id: 'dev-123', email: 'sandbox-developer@example.com' });
+          setUserRow({ id: 'dev-123', username: 'Sandbox Developer', role: 'supervisor', email: 'sandbox-developer@example.com' });
+          setLoadingUser(false);
+          return; // Stop right here!
+        }
 
         // give Supabase time to restore session
-        await new Promise(resolve =>
-          setTimeout(resolve, 1000)
-        );
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
         const {
           data: { session },
@@ -83,17 +88,17 @@ export default function App() {
           console.error(sessionError);
         }
 
-        // no login
+        // no login found in production environment
         if (!session?.user) {
-
-          window.location.href =
-            "https://joelofthesharingan.github.io/home/login.html";
-
+          const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+          
+          window.location.href = isLocal
+            ? "http://localhost:3000/home/login.html"
+            : "https://joelofthesharingan.github.io/home/login.html";
           return;
         }
 
         const u = session.user;
-
         setAuthUser(u);
 
         // fetch user row
@@ -112,32 +117,33 @@ export default function App() {
 
         // first login
         if (!user) {
-
           setNeedsName(true);
-
         } else {
-
           console.log("User row:", user);
-
           setUserRow(user);
         }
 
       } catch (err) {
-
         console.error("INIT ERROR:", err);
-
       } finally {
-
         setLoadingUser(false);
       }
     };
 
     init();
-
   }, []);
 
   /* ── fetch projects ── */
   useEffect(() => {
+    const isSandbox = window.location.port === '5173' || window.location.port === '5174';
+    if (isSandbox) {
+      setProjects([
+        { id: 1, project_name: 'Sandbox Project Alpha' },
+        { id: 2, project_name: 'Sandbox Project Beta' }
+      ]);
+      return;
+    }
+
     const fetchProjects = async () => {
       const { data, error } = await supabase
         .schema("titan_dynamics")
@@ -157,7 +163,7 @@ export default function App() {
     const { data, error } = await supabase
       .from('users')
       .insert({
-        id: authUser.id,   // ← fixed
+        id: authUser.id,
         email: authUser.email,
         username: nameInput.trim(),
         role: 'supervisor',
@@ -174,11 +180,19 @@ export default function App() {
 
   /* ── fetch logs ── */
   const fetchLogs = async () => {
+    const isSandbox = window.location.port === '5173' || window.location.port === '5174';
+    if (isSandbox) {
+      setLogs([
+        { id: 101, date: new Date().toISOString().split('T')[0], start_time: '09:00', end_time: '17:00', total_hours: '8.00', projects: { project_name: 'Sandbox Project Alpha' } }
+      ]);
+      return;
+    }
+
     const { data, error } = await supabase
       .schema("titan_dynamics")
       .from('work_logs')
       .select('*, projects(project_name)')
-      .eq('user_id', authUser.id)   // ✅ FIXED
+      .eq('user_id', authUser.id)   
       .order('date', { ascending: false });
 
     if (error) console.error('fetchLogs error:', error);
@@ -238,8 +252,26 @@ export default function App() {
       showFlash('End time must follow start time', '#e05a4e'); return;
     }
     const total_hours = calcHours(start_time, end_time);
+
+    const isSandbox = window.location.port === '5173' || window.location.port === '5174';
+    if (isSandbox) {
+      const selectedProj = projects.find(p => String(p.id) === String(project));
+      const newMockLog = {
+        id: Date.now(),
+        date,
+        start_time,
+        end_time,
+        total_hours,
+        projects: selectedProj ? { project_name: selectedProj.project_name } : null
+      };
+      setLogs(prev => [newMockLog, ...prev]);
+      showFlash(`Entry recorded — ${total_hours} hrs`);
+      setForm(f => ({ ...f, start_time: '', end_time: '', project: '' }));
+      return;
+    }
+
     const { error } = await supabase.schema("titan_dynamics").from('work_logs').insert([{
-      user_id: authUser.id,   // ✅ FIXED
+      user_id: authUser.id,
       date,
       start_time,
       end_time,
@@ -253,19 +285,21 @@ export default function App() {
   };
 
   /* ── sign out ── */
-/* ── sign out ── */
-const handleSignOut = async () => {
+  const handleSignOut = async () => {
+    const isSandbox = window.location.port === '5173' || window.location.port === '5174';
+    if (!isSandbox) {
+      await supabase.auth.signOut();
+    }
 
-  await supabase.auth.signOut();
+    const isLocal =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
 
-  const isLocal =
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1";
+    window.location.href = isLocal
+      ? "http://localhost:3000/home/login.html"
+      : "https://joelofthesharingan.github.io/home/login.html";
+  };
 
-  window.location.href = isLocal
-    ? "http://localhost:3000/home/login.html"
-    : "https://joelofthesharingan.github.io/home/login.html";
-};
   /* ── stats ── */
   const today = new Date().toISOString().split('T')[0];
   const totalHours = logs.reduce((a, l) => a + parseFloat(l.total_hours || '0'), 0);
@@ -273,7 +307,7 @@ const handleSignOut = async () => {
   const uniqueDays = [...new Set(logs.map(l => l.date))].length;
   const avgHrs = uniqueDays > 0 ? (totalHours / uniqueDays).toFixed(1) : '—';
 
-  const displayName = userRow?.username ?? '—';   // ← only username now
+  const displayName = userRow?.username ?? '—';
 
   /* ── loading ── */
   if (loadingUser) {
@@ -291,7 +325,7 @@ const handleSignOut = async () => {
         <div className="td-header">
           <div>
             <div className="td-wordmark">Titan Dynamics</div>
-            <div className="td-sub">Workforce Operations System</div>
+            <div className="td-sub">Time Tracker System</div>
           </div>
         </div>
         <div className="td-name-screen">
@@ -344,7 +378,7 @@ const handleSignOut = async () => {
                 : "Update in Sheets"}
           </button>
           <div className="td-sheet-link" onClick={() => window.open(SHEET_URL, "_blank")}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 242423 333333" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill-rule="evenodd" clip-rule="evenodd"><defs><mask id="c"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="200294" y1="91174.8" x2="200294" y2="176113"><stop offset="0" stop-opacity=".02" stop-color="#fff"/><stop offset="1" stop-opacity=".2" stop-color="#fff"/></linearGradient><path fill="url(#a)" d="M158015 84111h84558v99065h-84558z"/></mask><mask id="e"><radialGradient id="b" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="0" fx="0" fy="0"><stop offset="0" stop-opacity="0" stop-color="#fff"/><stop offset="1" stop-opacity=".098" stop-color="#fff"/></radialGradient><path fill="url(#b)" d="M-150-150h242723v333633H-150z"/></mask><radialGradient id="f" gradientUnits="userSpaceOnUse" cx="9696.85" cy="10000.4" r="166667" fx="9696.85" fy="10000.4"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#fff"/></radialGradient><linearGradient id="d" gradientUnits="userSpaceOnUse" x1="200294" y1="95125.2" x2="200294" y2="172162"><stop offset="0" stop-color="#263138"/><stop offset="1" stop-color="#263138"/></linearGradient></defs><g fill-rule="nonzero"><path d="M151513 0H22729C10227 0 1 10227 1 22728v287877c0 12505 10227 22728 22728 22728h196966c12505 0 22728-10224 22728-22728V90911l-53028-37880L151513 0z" fill="#0f9c57"/><path d="M60606 162880v109853h121216V162880H60606zm53032 94698H75757v-18938h37881v18938zm0-30301H75757v-18946h37881v18946zm0-30310H75757v-18936h37881v18936zm53030 60611h-37884v-18938h37884v18938zm0-30301h-37884v-18946h37884v18946zm0-30310h-37884v-18936h37884v18936z" fill="#f0f0f0"/><path mask="url(#c)" fill="url(#d)" d="M158165 84261l84258 84245V90911z"/><path d="M151513 0v68184c0 12557 10173 22727 22727 22727h68183L151513 0z" fill="#87cdac"/><path d="M22728 0C10226 0 0 10227 0 22729v1893C0 12123 10227 1894 22728 1894h128784V1H22728z" fill="#fff" fill-opacity=".2"/><path d="M219694 331443H22728C10226 331443 0 321213 0 308715v1890c0 12505 10227 22728 22728 22728h196966c12505 0 22728-10224 22728-22728v-1890c0 12499-10224 22728-22728 22728z" fill="#263138" fill-opacity=".2"/><path d="M174239 90911c-12554 0-22727-10170-22727-22727v1893c0 12557 10173 22727 22727 22727h68183v-1893h-68183z" fill="#263138" fill-opacity=".102"/><path d="M151513 0H22729C10227 0 1 10227 1 22729v287876c0 12505 10227 22728 22728 22728h196966c12505 0 22728-10224 22728-22728V90911L151513 0z" mask="url(#e)" fill="url(#f)"/></g></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 242423 333333" shapeRendering="geometricPrecision" textRendering="geometricPrecision" imageRendering="optimizeQuality" fillRule="evenodd" clipRule="evenodd"><defs><mask id="c"><linearGradient id="a" gradientUnits="userSpaceOnUse" x1="200294" y1="91174.8" x2="200294" y2="176113"><stop offset="0" stopOpacity=".02" stopColor="#fff"/><stop offset="1" stopOpacity=".2" stopColor="#fff"/></linearGradient><path fill="url(#a)" d="M158015 84111h84558v99065h-84558z"/></mask><mask id="e"><radialGradient id="b" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="0" fx="0" fy="0"><stop offset="0" stopOpacity="0" stopColor="#fff"/><stop offset="1" stopOpacity=".098" stopColor="#fff"/></radialGradient><path fill="url(#b)" d="M-150-150h242723v333633H-150z"/></mask><radialGradient id="f" gradientUnits="userSpaceOnUse" cx="9696.85" cy="10000.4" r="166667" fx="9696.85" fy="10000.4"><stop offset="0" stopColor="#fff"/><stop offset="1" stopColor="#fff"/></radialGradient><linearGradient id="d" gradientUnits="userSpaceOnUse" x1="200294" y1="95125.2" x2="200294" y2="172162"><stop offset="0" stopColor="#263138"/><stop offset="1" stopColor="#263138"/></linearGradient></defs><g fillRule="nonzero"><path d="M151513 0H22729C10227 0 1 10227 1 22728v287877c0 12505 10227 22728 22728 22728h196966c12505 0 22728-10224 22728-22728V90911l-53028-37880L151513 0z" fill="#0f9c57"/><path d="M60606 162880v109853h121216V162880H60606zm53032 94698H75757v-18938h37881v18938zm0-30301H75757v-18946h37881v18946zm0-30310H75757v-18936h37881v18936zm53030 60611h-37884v-18938h37884v18938zm0-30301h-37884v-18946h37884v18946zm0-30310h-37884v-18936h37884v18936z" fill="#f0f0f0"/><path mask="url(#c)" fill="url(#d)" d="M158165 84261l84258 84245V90911z"/><path d="M151513 0v68184c0 12557 10173 22727 22727 22727h68183L151513 0z" fill="#87cdac"/><path d="M22728 0C10226 0 0 10227 0 22729v1893C0 12123 10227 1894 22728 1894h128784V1H22728z" fill="#fff" fillOpacity=".2"/><path d="M219694 331443H22728C10226 331443 0 321213 0 308715v1890c0 12505 10227 22728 22728 22728h196966c12505 0 22728-10224 22728-22728v-1890c0 12499-10224 22728-22728 22728z" fill="#263138" fillOpacity=".2"/><path d="M174239 90911c-12554 0-22727-10170-22727-22727v1893c0 12557 10173 22727 22727 22727h68183v-1893h-68183z" fill="#263138" fillOpacity=".102"/><path d="M151513 0H22729C10227 0 1 10227 1 22729v287876c0 12505 10227 22728 22728 22728h196966c12505 0 22728-10224 22728-22728V90911L151513 0z" mask="url(#e)" fill="url(#f)"/></g></svg>
             <span>VISIT</span>
           </div>
         </div>

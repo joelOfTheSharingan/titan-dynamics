@@ -94,7 +94,7 @@ export default function App() {
           
           window.location.href = isLocal
             ? "http://localhost:3000/home/login.html"
-            : "https://joelofthesharingan.github.io/home/login.html";
+            : "https://joelmg.in/login.html";
           return;
         }
 
@@ -297,7 +297,7 @@ export default function App() {
 
     window.location.href = isLocal
       ? "http://localhost:3000/home/login.html"
-      : "https://joelofthesharingan.github.io/home/login.html";
+      : "https://joelmg.in/login.html";
   };
 
   /* ── stats ── */

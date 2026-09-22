@@ -21,7 +21,7 @@ export default function LoginPage() {
 
   const LOGIN_URL = isLocal
     ? 'http://localhost:3000/home/login.html'
-    : 'https://github.io';
+    : 'https://joelmg.in/login.html';
 
   // ─────────────────────────────
   // AUTH INIT

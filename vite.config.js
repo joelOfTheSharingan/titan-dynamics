@@ -5,11 +5,10 @@ export default defineConfig(({ command }) => {
   return {
     plugins: [react()],
     
-    // Default base URL fallback for local configurations
-    base: command === 'serve' ? '/' : './',
+    // 🚀 FIXED: Use '/' for local dev, and '/titan-dynamics/' for production builds
+    base: command === 'serve' ? '/' : '/titan-dynamics/',
     
     build: {
-      // 🚨 FIXED: Changed from your home path to your clean local dist folder!
       outDir: 'dist',
       emptyOutDir: true,
     },

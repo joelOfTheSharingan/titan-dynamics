@@ -2,17 +2,15 @@
   "name": "titan-timesheet",
   "private": true,
   "version": "0.0.0",
-  "homepage": "https://joelOfTheSharingan.github.io/titan-dynamics",
+  "homepage": "https://joelmg.in",
   "type": "module",
-"scripts": {
-  "dev": "vite",
-  "build": "vite build",
-  "build:github": "vite build --base=/titan-dynamics/",
-  "preview": "vite preview",
-  "predeploy": "npm run build:github",
-  "deploy": "gh-pages -d dist"
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
-
   "dependencies": {
     "@supabase/supabase-js": "^2.99.2",
     "cors": "^2.8.6",
